@@ -63,9 +63,9 @@ public class Server {
     }
 
     public void privateMsg(String msg, String nickname) {
-        for (ClientHandler c : clients) {
-            if (c.getNickname().equalsIgnoreCase(nickname)) {
-                c.sendMsg(msg);
+        for (ClientHandler o : clients) {
+            if (o.getNickname().equalsIgnoreCase(nickname)) {
+                o.sendMsg(msg);
             }
         }
     }
