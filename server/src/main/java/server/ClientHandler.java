@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private Server server;
@@ -15,6 +16,7 @@ public class ClientHandler {
     private DataOutputStream out;
 
     private String nickname;
+    private String login;
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -24,12 +26,14 @@ public class ClientHandler {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            new Thread(()-> {
+            new Thread(() -> {
                 try {
+                    socket.setSoTimeout(5000); // Если пользователь бездействует 120 сек перед авторизацией
+
                     // Цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
-                        if (str.startsWith("/")){ // Служебные сообщения с символом /
+                        if (str.startsWith("/")) { // Служебные сообщения с символом /
                             if (str.equals(Command.END)) { // Команда для прерывания пользователем переписки
                                 System.out.println("Пользователь хочет отключиться от сервера ");
                                 out.writeUTF(Command.END); // Команда для отключения пользователя при идентификации
@@ -39,39 +43,59 @@ public class ClientHandler {
                             if (str.startsWith(Command.AUTH)) { // Успешная авторизация
                                 String[] token = str.split("\\s");
                                 String newNick = server.getAuthService().getNicknameByLoginAndPassword(token[1], token[2]);
-                                if (newNick != null){ // Успешная утентификация
-                                    nickname = newNick;
-                                    sendMsg(Command.AUT_OK + " " + nickname); // Отправка сообщения при успешной авторизации
-                                    server.subscribe(this);
-                                    break;
+                                login = token[1]; // Определяем логин
+                                if (newNick != null) { // Успешная утентификация
+                                    socket.setSoTimeout(0); // Отменим отключение при бездействии
+                                    if (!server.isLoginAuthenticated(login)) { // Если пользователь не авторизовался
+                                        nickname = newNick;
+                                        sendMsg(Command.AUT_OK + " " + nickname); // Отправка сообщения при успешной авторизации
+                                        server.subscribe(this);
+                                        break;
+                                    } else {
+                                        sendMsg("Пользователь с такой учетной записью уже авторизовался");
+                                    }
                                 } else {
                                     sendMsg("Неверный логин / пароль");
-
                                 }
                             }
-
+                            if (str.startsWith(Command.REG)) {
+                                String[] token = str.split("\\s");
+                                if (token.length < 4) { // Если пришло меньше 4-х сущностей - комманда, логин, пароль и никнейм, то не даем зарегистрироваться
+                                    continue;
+                                }
+                                boolean regSuccessful = server.getAuthService().registration(token[1], token[2], token[3]);
+                                if (regSuccessful) {
+                                    sendMsg(Command.REG_OK);
+                                } else {
+                                    sendMsg(Command.REG_NO);
+                                }
+                            }
                         }
                     }
                     // Цикл работающий после аутентификации
                     while (true) {
                         String str = in.readUTF();
 
-                        if (str.equals(Command.END)) { // Команда для прерывания пользователем переписки
-                            out.writeUTF(Command.END);
-                            break;
-
+                        if (str.startsWith("/")) {
+                            if (str.equals(Command.END)) {
+                                out.writeUTF(Command.END);
+                                break;
+                            }
                             // Реализуем личные сообщения от пользователя к пользователю
-                        }
-                        if (str.startsWith(Command.W)) {
-                            String[] words = str.split("\\s", 2);
-                            String nickReciever = words[1];
-                            String message = str.substring(3);
-                            server.privateMsg(" [ " + nickname + " ] " + " : " + message, nickReciever);
-
+                            if (str.startsWith(Command.PRIVATE_MSG)) {
+                                String[] token = str.split("\\s+", 3); // Разделем на массив пользовательское сообщение. "\\s+" - для определения нескольких пробелов. Limit 3 - команда /w, имя получателя и остальное сообщение
+                                // Случай если сообщение меньше дтребуемой длины, например указапнп команда и получатель, но нет самого сообщения. Такие сообщения просто пропускаем
+                                if (token.length < 3) {
+                                    continue;
+                                }
+                                server.privateMsg(this, token[1], token[2]); // Определяем от кого сообщение
+                            }
                         } else {
-                            server.broadcastMsg(this, str);
+                            server.broadcastMsg(this, str); // Если нет служебных комманд, то отправляем сообщение все пользователям
                         }
                     }
+                } catch (SocketTimeoutException | RuntimeException e) {
+                    System.out.println("Время для подключения к серверу истекло");
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -101,5 +125,9 @@ public class ClientHandler {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public String getLogin() {
+        return login;
     }
 }

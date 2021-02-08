@@ -39,4 +39,16 @@ public class SimpleAuthService implements AuthService{
         }
         return null;
     }
+
+    @Override
+    public boolean registration (String login, String password, String nickname) {
+        for (UseData user : users) { // Проверка наличия учетных записей
+            if (user.login.equals(login) || user.nickname.equals(nickname)) { // Проверка наличия логина и никнейма
+                return false; // Если логин и никнейм уже есть в списке пользователей - возвращаем false
+            }
+        }
+        // Если пользователя нет в списке пользователей
+        users.add(new UseData(login, password, nickname));
+        return true;
+    }
 }
