@@ -6,12 +6,15 @@
 <?import java.net.URL?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ListView?>
+
 <VBox fx:controller="client.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
 
     <stylesheets>
         <URL value="@/css/style.css"/>
     </stylesheets>
+
+
 
     <!--Сделаем изменение в интерфейсе - залогиненный пользователь видит только поля для ввода логинов, кнопку подтверждения и тектовое окно-->
     <HBox fx:id="authPanel">

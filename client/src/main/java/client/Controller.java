@@ -15,6 +15,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -83,16 +84,14 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources){
         Platform.runLater(()->{
             stage = (Stage) textField.getScene().getWindow();
-            stage.setOnCloseRequest(new EventHandler<WindowEvent>() { // Событие при закрытии окна "х"
-                @Override
-                public void handle(WindowEvent event) {
-                    System.out.println("Чат закрыт");
-                    if (socket != null && socket.isClosed()) { // Если сокет не инициализирован (null) или закрыт
-                        try {
-                            out.writeUTF(Command.END); // Используем команду разрыва соединения
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+            // Событие при закрытии окна "х"
+            stage.setOnCloseRequest(event -> {
+                System.out.println("Чат закрыт");
+                if (socket != null && socket.isClosed()) { // Если сокет не инициализирован (null) или закрыт
+                    try {
+                        out.writeUTF(Command.END); // Используем команду разрыва соединения
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
             });
