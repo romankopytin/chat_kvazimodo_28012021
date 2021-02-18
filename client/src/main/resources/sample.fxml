@@ -5,6 +5,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ListView?>
+
 <VBox fx:controller="client.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
 
@@ -12,14 +14,22 @@
         <URL value="@/css/style.css"/>
     </stylesheets>
 
-    <!--Сделаем изменение в интерфейсе - залогиненный пользователь видит тольео поля для ввода логинов, кнопку подтверждения и тектовое окно-->
+
+
+    <!--Сделаем изменение в интерфейсе - залогиненный пользователь видит только поля для ввода логинов, кнопку подтверждения и тектовое окно-->
     <HBox fx:id="authPanel">
         <TextField fx:id="loginField" promptText="login" HBox.hgrow="ALWAYS"/>
         <PasswordField fx:id="passwordField" promptText="password" HBox.hgrow="ALWAYS" onAction="#trytoAuth"/>
         <Button text="Войти" onAction="#trytoAuth" minWidth="70"/>
+        <Button text="Регистрация" onAction="#clickRegButton" minWidth="120"/>
     </HBox>
 
-    <TextArea fx:id="textArea" VBox.vgrow="ALWAYS" editable="false"/>
+    <!--Сделаем окно для регистрации нового пользователя-->
+
+    <HBox VBox.vgrow="ALWAYS">
+        <TextArea fx:id="textArea" HBox.hgrow="ALWAYS" editable="false" wrapText="true"/>
+        <ListView fx:id="clientList" minWidth="120" visible="false" managed="false" onMouseReleased="#clientListClicked"/>
+    </HBox>
 
     <HBox fx:id="messagePanel" visible="false" managed="false"> <!--Сделаем нижнюю панель невидимой без авторизации-->
         <TextField fx:id="textField" promptText="Введите текст..." HBox.hgrow="ALWAYS" onAction="#sendMsg"/>

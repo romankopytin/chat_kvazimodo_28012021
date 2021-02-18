@@ -1,0 +1,25 @@
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<?import javafx.scene.control.PasswordField?>
+
+<?import javafx.scene.control.TextArea?>
+<VBox fx:controller="client.RegController"
+      xmlns:fx="http://javafx.com/fxml" alignment="center">
+
+    <stylesheets>
+        <URL value="@/css/style.css"/>
+    </stylesheets>
+
+    <!--Сделаем изменение в интерфейсе - залогиненный пользователь видит только поля для ввода логинов, кнопку подтверждения и тектовое окно-->
+
+        <TextField fx:id="loginField" promptText="login" />
+        <PasswordField fx:id="passwordField" promptText="password" />
+        <TextField fx:id="nicknameField" promptText="nickname" onAction="#tryToReg"/>
+        <TextArea fx:id="textArea" VBox.vgrow="ALWAYS" editable="false"/>
+        <Button text="Регистрация" minWidth="100" onAction="#tryToReg"/>
+
+    <!--Сделаем окно для регистрации нового пользователя-->
+
+</VBox>

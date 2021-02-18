@@ -1,5 +1,10 @@
 package server;
 
+import commands.Command;
+
+import javax.swing.*;
+import javax.swing.text.rtf.RTFEditorKit;
+import java.awt.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -43,11 +48,13 @@ public class Server {
     // Вспомогательный метод для определения подключенных клиентов
     public void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        broadcastClientList(); // Изменение списка пользователй при входе новых пользователей
     }
 
     // Вспомогательный метод для удаления клиента из списка клиентов
     public void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        broadcastClientList(); // Изменение списка пользователей при выходе пользователя
     }
 
     public AuthService getAuthService() {
@@ -59,14 +66,43 @@ public class Server {
         String message = String.format("[ %s ] : %s", sender.getNickname(), msg);
         for (ClientHandler c : clients) { // Пройдемся по всем клиентам
             c.sendMsg(message); // Отправим всем подключенным клиентам копию сообщения
+
         }
     }
 
-    public void privateMsg(String msg, String nickname) {
-        for (ClientHandler c : clients) {
-            if (c.getNickname().equalsIgnoreCase(nickname)) {
-                c.sendMsg(msg);
+    public void privateMsg(ClientHandler sender, String receiver, String msg) { // Укажем отправителя, получателя и сообщение передающееся конкретному пользователяю
+        String message = String.format("[ %s ] => [ %s ] : %s", sender.getNickname(), receiver, msg);
+        for (ClientHandler c : clients) { // Пройдемся по всем клиентам
+            if (c.getNickname().equals(receiver)) { // Имя адресата = имени получателя - отправляем сообщение
+                c.sendMsg(message); // Отправим подключенному клиенту копию сообщения
+                if (!c.equals(sender)) { // Если адресат = пользователь отправляющий сообщение - не делаем копию сообщения для клиента пользователя
+                    sender.sendMsg(String.format("=>" + " [ " + receiver + " ] : " + msg));
+                }
+                return;
             }
+        }
+        sender.sendMsg("Пользователь не найден: " + receiver); // Сообщение, если получателя сообщения нет в списке пользователей
+    }
+
+    // Сделаем так, чтобы один пользователь не мог зайти несколько раз в аккаунт
+    public boolean isLoginAuthenticated(String login) {
+        for (ClientHandler c : clients) {
+            if(c.getLogin().equals(login)) {
+                return true; // Пользователь авторизовался
+            }
+        }
+        return false; // Пользователь не авторизовался
+    }
+
+    public void broadcastClientList() {
+        StringBuilder sb = new StringBuilder(Command.CLIENT_LIST); // Соберем список имен
+        for (ClientHandler c : clients) {
+            sb.append(" ").append(c.getNickname());
+        }
+        // Передадим список пользователей в чат
+        String message = sb.toString();
+        for (ClientHandler c : clients) {
+            c.sendMsg(message);
         }
     }
 }
