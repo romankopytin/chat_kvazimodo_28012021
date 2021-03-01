@@ -114,8 +114,9 @@ public class MainClass {
     }
 }
 
-
 package Lesson_5.DZ;
+
+// Гонка
 
 import java.util.ArrayList;
 import java.util.Arrays;
