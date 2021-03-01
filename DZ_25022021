@@ -1,5 +1,7 @@
 package Lesson_5.DZ;
 
+// Гоночные машины
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.locks.Lock;
@@ -79,6 +81,7 @@ package Lesson_5.DZ;
 // Только после того как все завершат гонку, нужно выдать объявление об окончании.
 // Можете корректировать классы (в т.ч. конструктор машин) и добавлять объекты классов из пакета util.concurrent.
 
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -128,6 +131,7 @@ public class Race {
         this.stages = new ArrayList<>(Arrays.asList(stages));
     }
 }
+
 package Lesson_5.DZ;
 
 public class Road extends Stage {
@@ -146,6 +150,7 @@ public class Road extends Stage {
         }
     }
 }
+
 package Lesson_5.DZ;
 
 public abstract class Stage {
@@ -158,6 +163,7 @@ public abstract class Stage {
 
     public abstract	 void go(Car c);
 }
+
 package Lesson_5.DZ;
 
 import java.util.concurrent.Semaphore;
